@@ -20,10 +20,10 @@ class Banner(models.Model):
 
 class AboutUs(models.Model):
     desc = models.TextField(_('description'))
-    vidio = models.OneToOneField(Media, blank=True, null=True, on_delete=models.SET_NULL)
+    video = models.OneToOneField(Media, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return f"{self.id}-{self.desc}"
+        return f"{self.id}-{self.desc[:30]}"
 
     class Meta:
         verbose_name = _('About Us')
@@ -35,7 +35,7 @@ class AboutUsGallery(models.Model):
     about_us = models.OneToOneField(AboutUs, on_delete=models.CASCADE, related_name='about_us')
 
     def __str__(self):
-        return f"{self.about_us}-{self.image.file.url}"
+        return f"{self.about_us}-{self.image.file.url if self.image else 'No image'} "
 
     class Meta:
         verbose_name = _('About Us Gallery')
@@ -49,7 +49,7 @@ class Contacts(models.Model):
     work_time = models.CharField(_('work time'), max_length=255)
 
     def __str__(self):
-        return f"{self.id}-{self.address}"
+        return f"{self.id}-{self.address[:30]}"
 
     class Meta:
         verbose_name = _('contacts')
