@@ -22,7 +22,6 @@ class ProductAttribute(models.Model):
     product = models.ForeignKey(Product, related_name='attributes', on_delete=models.CASCADE)
     title = models.CharField(_('title'), max_length=255)
     value = models.CharField(_('title'), max_length=255)
-    size = models.IntegerField(_('size'), help_text='in litters')
 
     def __str__(self):
         return f"{self.product.title} - {self.title}: {self.value} ({self.size}L)"
