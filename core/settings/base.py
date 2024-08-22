@@ -30,7 +30,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = list(env("ALLOWED_HOSTS").split(','))
-
+HOST = env('HOST')
 
 # Application definition
 
@@ -51,6 +51,7 @@ LOCAL_APPS = [
 
 THIRD_PARTY_APPS = [
     "phonenumber_field",
+    'rest_framework',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
