@@ -44,7 +44,7 @@ class AboutUsGallery(models.Model):
 
 class Contacts(models.Model):
     address = models.TextField(_('address'))
-    phone_number1 = models.CharField(_('phone number1'), max_length=255, validators=[phone_number_validator])
+    phone_number1 = PhoneNumberField(_('phone_number1'))
     phone_number2 = PhoneNumberField(_('phone_number2'))
     work_time = models.CharField(_('work time'), max_length=255)
 
