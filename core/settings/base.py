@@ -47,11 +47,14 @@ LOCAL_APPS = [
     'common',
     'company',
     'product',
+    'account',
+    'order',
 ]
 
 THIRD_PARTY_APPS = [
     "phonenumber_field",
     'rest_framework',
+    'drf_yasg'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS

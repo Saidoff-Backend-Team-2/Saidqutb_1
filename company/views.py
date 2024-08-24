@@ -3,10 +3,13 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
+from rest_framework import generics
+from .models import Contacts, SocialMedia, ContactWithUs
+from .serializers import ContactsSerializer, SocialMediaSerializer, ContactWithUsSerializer
 
 from .models import *
 from .serializers import *
-from company.models import Banner
+from .models import Banner
 
 
 class BannerListView(APIView):
@@ -24,6 +27,23 @@ class AboutUsHomeView(APIView):
         serializer = AboutUsHomeSerializer(about_us, context={'request': request})
         return Response(data=serializer.data)
 
+
+class ContactsView(generics.RetrieveAPIView):
+    queryset = Contacts.objects.all()
+    serializer_class = ContactsSerializer
+
+    def get_object(self):
+        return self.queryset.first()
+
+
+class SocialMediaListView(generics.ListAPIView):
+    queryset = SocialMedia.objects.all()
+    serializer_class = SocialMediaSerializer
+
+
+class ContactWithUsCreateView(generics.CreateAPIView):
+    queryset = ContactWithUs.objects.all()
+    serializer_class = ContactWithUsSerializer
 
 
 

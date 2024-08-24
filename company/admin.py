@@ -21,7 +21,8 @@ class AboutUsAdmin(admin.ModelAdmin):
 class AboutUsGalleryAdmin(admin.ModelAdmin):
     pass
 
-
-
+admin.site.register(Contacts)
+admin.site.register(ContactWithUs)
+admin.site.register(SocialMedia)
 
 

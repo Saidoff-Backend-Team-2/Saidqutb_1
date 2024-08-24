@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Banner, AboutUs, AboutUsGallery
+from .models import Banner, AboutUs, AboutUsGallery, Contacts
 from common.serializers import MediaURLSerializer
+from company.models import SocialMedia, ContactWithUs
 
 
 class BannerListSerializers(serializers.ModelSerializer):
@@ -30,7 +31,22 @@ class AboutUsHomeSerializer(serializers.ModelSerializer):
         return AboutUsGallerySerializer(obj.galleries.order_by('?')[:6], many=True, context=self.context).data
 
 
+class ContactsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contacts
+        fields = ('address', 'phone_number1', 'phone_number2', 'work_time')
 
+
+class SocialMediaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialMedia()
+        fields = ('link', 'icon')
+
+
+class ContactWithUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactWithUs
+        fields = ('full_name', 'phone_number')
 
 
 
