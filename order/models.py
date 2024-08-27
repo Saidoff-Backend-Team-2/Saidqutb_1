@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.db.models import Sum
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from account.models import User
@@ -15,10 +16,11 @@ class OrderStatus(models.TextChoices):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('user'))
     address = models.TextField(_('address'))
-    location = models.IntegerField(_('location'))
+    long = models.FloatField(_('longitude'), blank=True, null=True)
+    lat = models.FloatField(_('latitude'), blank=True, null=True)
     status = models.CharField(_('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.CREATED)
     phone_number = PhoneNumberField(_('phone number'))
-    id = models.UUIDField(_('order ID'), primary_key=True, default=uuid.uuid4, editable=False)
+    total_price = models.FloatField(_('total price'), blank=True, null=True)
 
     def __str__(self):
         return f"Order {self.id} by {self.user.full_name}"
@@ -26,6 +28,11 @@ class Order(models.Model):
     class Meta:
         verbose_name = _('Order')
         verbose_name_plural = _('Orders')
+
+    def save(self, *args, **kwargs):
+        total_price = self.cart_items.aggregate(Sum('subtotal_price'))['subtotal_price_sum']
+        self.total_price = total_price
+        self.save()
 
 
 class CartItem(models.Model):

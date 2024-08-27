@@ -5,3 +5,4 @@ django-phonenumber-field-8.0.0
 phonenumbers==.13.43
 djangorestframework==3.15.2
 drf-yasg==1.21.7
+djangorestframework-simplejwt==5.3.1

@@ -8,7 +8,7 @@ class ProductHomeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'title', 'desc', 'image', 'discount')
+        fields = ('id', 'title', 'desc', 'image')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -34,6 +34,6 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'title', 'desc', 'attributes', 'discount')
+        fields = ('id', 'title', 'desc', 'attributes')
 
 

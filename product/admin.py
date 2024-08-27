@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, ProductAttribute, WebOrder, Discount
+from .models import Product, ProductAttribute, WebOrder, Action
 
 
 class ProductAttributeInline(admin.StackedInline):
@@ -22,6 +22,6 @@ class ProductAttributeAdmin(admin.ModelAdmin):
 class WebOrderAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(Discount)
-class DiscountAdmin(admin.ModelAdmin):
+@admin.register(Action)
+class ActionAdmin(admin.ModelAdmin):
     pass
