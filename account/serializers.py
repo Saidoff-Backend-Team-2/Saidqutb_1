@@ -7,52 +7,68 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(min_length=8, write_only=True)
+
     class Meta:
         model = User
-        fields = ['user_type', 'full_name', 'username', 'email', 'password', 'phone_number']
+        fields = ['user_type', 'full_name', 'username', 'email', 'password', 'phone_number', 'company_name', 'confirm_password']
         extra_kwargs = {
-            'email': {'required': False, 'allow_blank': True},
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'email': {'required': False},
+            'company_name': {'required': False},
         }
 
-    def validate(self, data):
-        if User.objects.filter(email=data.get('email')).exists():
-            raise serializers.ValidationError({'email': _('This email is already registered.')})
-        if data['user_type'] == User.UserType.LEGAL and not data.get('company_name'):
-            raise serializers.ValidationError({
-                'company_name': _('Company name is required for legal entities.')
-            })
-        return data
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError(
+                _('Passwords do not match')
+            )
+        return attrs
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            user_type=validated_data['user_type'],
-            full_name=validated_data['full_name'],
-            username=validated_data['username'],
-            email=validated_data.get('email'),
-            phone_number=validated_data['phone_number'],
-            password=validated_data['password'],
-            company_name=validated_data.get('company_name')
-        )
+        validated_data.pop('confirm_password')
+        user = User.objects.create_user(**validated_data)
         return user
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    pass
+class UserLoginRequestSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True)
 
-
-class EmailLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-
-    def validate(self, data):
-        email = data.get('email')
+    def validate(self, attrs):
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(username=attrs['username'])
+            if not user.check_password(attrs['password']):
+                raise serializers.ValidationError(_('User password is incorrect'))
+            return attrs
         except User.DoesNotExist:
-            raise serializers.ValidationError({'email': _('User with this email was not found.')})
+            raise serializers.ValidationError(_('User does not exist'))
 
-        refresh = RefreshToken.for_user(user)
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token)
+
+class UserLoginResponseSerializer(serializers.Serializer):
+    access = serializers.CharField(required=True)
+    refresh = serializers.CharField(required=True)
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['full_name', 'email', 'username', 'phone_number', 'telegram_id', 'telegram_username', 'company_name']
+        extra_kwargs = {
+            'email': {'required': False},
+            'username': {'required': False},
+            'full_name': {'required': False},
         }
+
+    def validate_email(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(email=value).exist():
+            raise serializers.ValidationError('Email is already in use.')
+        return value
+
+    def validate_username(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
+            raise serializers.ValidationError('Username is already in use.')
+        return value
+

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import environ
 from pathlib import Path
+from ..JWT_TOKEN import SIMPLE_JWT
 
 from django.conf.global_settings import AUTH_USER_MODEL
 
@@ -163,8 +164,4 @@ REST_FRAMEWORK = {
     ),
 }
 
-SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'BLACKLIST_AFTER_ROTATION': True,
-    'ROTATE_REFRESH_TOKENS': True,
-}
+SIMPLE_JWT = SIMPLE_JWT

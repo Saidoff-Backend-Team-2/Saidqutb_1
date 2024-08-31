@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import  ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class User(AbstractUser):
@@ -36,3 +37,20 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _('User')
         verbose_name_plural = _('Users')
+
+    def get_token(self):
+        refresh = RefreshToken.for_user(self)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+
+
+
+
+
+
+
+
+
