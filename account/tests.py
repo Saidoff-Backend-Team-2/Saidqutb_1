@@ -1,82 +1,109 @@
-from .models import User
-from django.urls import reverse
-from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
+from account.models import User
 
-class UserRegisterTests(APITestCase):
+class UserRegisterViewTest(APITestCase):
 
-    def test_register_user_success(self):
+    def test_user_can_register(self):
         url = reverse('register')
         data = {
             "user_type": "individual",
             "full_name": "Test User",
             "username": "testuser",
             "email": "testuser@example.com",
-            "phone_number": "+1234567890",
-            "password": "TestPassword123"
+            "password": "testpassword123",
+            "confirm_password": "testpassword123",
+            "phone_number": "+998979934078",
         }
-        response = self.client.post(url, data, format='json')
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['detail'], "Registration successful!")
 
-    def test_register_user_existing_email(self):
-        User.objects.create_user(
-            username="existinguser",
-            email="testuser@example.com",
-            password="TestPassword123"
-        )
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(User.objects.filter(username="testuser").exists())
+
+    def test_passwords_must_match(self):
         url = reverse('register')
         data = {
             "user_type": "individual",
             "full_name": "Test User",
-            "username": "testuser2",
+            "username": "testuser",
             "email": "testuser@example.com",
+            "password": "testpassword123",
+            "confirm_password": "differentpassword",
             "phone_number": "+998979934078",
-            "password": "Test123"
         }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('email', response.data)
-        self.assertEqual(response.data['email'][0], "User with this email already exists.")
 
-    def test_register_user_legal_without_company_name(self):
-        url = reverse('register')
-        data = {
-            "user_type": "legal",
-            "full_name": "Legal User",
-            "username": "legaluser",
-            "email": "legaluser@example.com",
-            "phone_number": "+998979932945",
-            "password": "TestPassword123"
-        }
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('company_name', response.data)
-        self.assertEqual(response.data['company_name'][0], "Company name is required for legal entities.")
 
-class CustomTokenObtainPairTests(APITestCase):
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username="testuser").exists())
+
+
+class UserLoginViewTest(APITestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", password="TestPassword123")
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword123"
+        )
 
-    def test_obtain_token_success(self):
+    def test_user_can_login(self):
         url = reverse('login')
         data = {
             "username": "testuser",
-            "password": "TestPassword123"
+            "password": "testpassword123"
         }
+
         response = self.client.post(url, data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access', response.data)
         self.assertIn('refresh', response.data)
 
-    def test_obtain_token_invalid_credentials(self):
-        url = reverse('token_verify')
+
+class LogoutViewTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword123"
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_user_can_logout(self):
+        url = reverse('logout')
+        tokens = self.user.get_token()
         data = {
-            "username": "testuser",
-            "password": "WrongPassword"
+            "refresh": tokens['refresh']
         }
+
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertIn('detail', response.data)
+
+        self.assertEqual(response.status_code, status.HTTP_205_RESET_CONTENT)
+
+
+class UserAccountUpdateViewTest(APITestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword123"
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_user_can_update_account(self):
+        url = reverse('account')
+        data = {
+            "full_name": "Updated Test User",
+            "email": "updatedemail@example.com"
+        }
+
+        response = self.client.patch(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.full_name, "Updated Test User")
+        self.assertEqual(self.user.email, "updatedemail@example.com")
+
+

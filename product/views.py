@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.throttling import UserRateThrottle
 
-from .models import Product, WebOrder
-from .serializers import ProductHomeListSerializer, WebOrderSerializer, ProductListSerializer
+from .models import Product, WebOrder, Action
+from .serializers import ProductHomeListSerializer, WebOrderSerializer, ProductListSerializer, ActionDetailSerializer
 
 
 class ProductHomeListView(generics.ListAPIView):
@@ -20,3 +20,8 @@ class WebOrderCreateView(generics.CreateAPIView):
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductListSerializer
+
+
+class DiscountDetailApiView(generics.RetrieveAPIView):
+    queryset = Action.objects.all()
+    serializer_class = ActionDetailSerializer

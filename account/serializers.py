@@ -62,7 +62,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         user = self.context['request'].user
-        if User.objects.exclude(pk=user.pk).filter(email=value).exist():
+        if User.objects.exclude(pk=user.pk).filter(email=value).exists():
             raise serializers.ValidationError('Email is already in use.')
         return value
 

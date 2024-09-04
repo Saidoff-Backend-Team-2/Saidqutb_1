@@ -21,6 +21,7 @@ class Order(models.Model):
     status = models.CharField(_('status'), max_length=20, choices=OrderStatus.choices, default=OrderStatus.CREATED)
     phone_number = PhoneNumberField(_('phone number'))
     total_price = models.FloatField(_('total price'), blank=True, null=True)
+    number = models.CharField(_('order number'), max_length=10, unique=True, blank=True)
 
     def __str__(self):
         return f"Order {self.id} by {self.user.full_name}"
@@ -30,9 +31,13 @@ class Order(models.Model):
         verbose_name_plural = _('Orders')
 
     def save(self, *args, **kwargs):
-        total_price = self.cart_items.aggregate(Sum('subtotal_price'))['subtotal_price_sum']
-        self.total_price = total_price
-        self.save()
+        if not self.number:
+            self.number = str(uuid.uuid4().hex[:6])
+        super().save(*args, **kwargs)
+        if not self.total_price:
+            total_price = self.cartitem_set.aggregate(Sum('product__price'))['product__price__sum'] or 0
+            self.total_price = total_price
+            super().save(update_fields=['total_price'])
 
 
 class CartItem(models.Model):

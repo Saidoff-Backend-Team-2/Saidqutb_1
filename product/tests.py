@@ -1,8 +1,12 @@
 from django.test import TestCase, Client
+from .models import Product, WebOrder, ProductAttribute, Action
 from django.urls import reverse
 from rest_framework import status
-from .models import Product, WebOrder, ProductAttribute, Discount
+from rest_framework.test import APITestCase
+from .models import Action
 from common.models import Media
+from account.models import User
+
 
 class ProductHomeListViewTest(TestCase):
     def setUp(self):
@@ -49,7 +53,7 @@ class ProductListViewTest(TestCase):
         self.client = Client()
         self.url = reverse('product-list')
         self.media = Media.objects.create(file="path/to/image.jpg")
-        self.discount = Discount.objects.create(title="Discount 20%", desc="Test Discount", image=self.media, percentage=20)
+        self.discount = Action.objects.create(title="Discount 20%", desc="Test Discount", image=self.media, percentage=20)
         self.product = Product.objects.create(
             title="Test Product",
             desc="Test Description",
@@ -68,3 +72,27 @@ class ProductListViewTest(TestCase):
         self.assertEqual(response.data[0]['title'], "Test Product")
         self.assertEqual(response.data[0]['attributes'][0]['title'], "Weight")
 
+
+class DiscountDetailApiViewTest(APITestCase):
+
+    def setUp(self):
+        self.media = Media.objects.create(file='test_image.jpg')
+
+        self.action = Action.objects.create(
+            title="Test Discount",
+            desc="Test Description",
+            image=self.media,
+            percentage=10
+        )
+
+    def test_discount_detail_view(self):
+        url = reverse('discount-detail', args=[self.action.id])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(response.data['id'], self.action.id)
+        self.assertEqual(response.data['title'], "Test Discount")
+        self.assertEqual(response.data['desc'], "Test Description")
+        self.assertEqual(response.data['percentage'], 10)

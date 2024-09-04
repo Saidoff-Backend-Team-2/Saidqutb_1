@@ -1,4 +1,4 @@
-import secrets
+import random
 
 def generate_order_number():
-    numbers = '0123456789'
+    return f"#{random.randint(100000, 999999)}"
