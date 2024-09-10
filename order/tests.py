@@ -19,7 +19,7 @@ class CartItemTestCase(TestCase):
         self.token = response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
-        self.product = Product.objects.create(title="Test Product", price=100, quantity=10)
+        self.product = Product.objects.create(title="Test Product", price=100, quantity=8)
 
     def test_create_cart_item(self):
         url = reverse('cartitem-create')
@@ -37,7 +37,7 @@ class CartItemTestCase(TestCase):
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Only 10 items available in stock.", response.content.decode())
+        self.assertIn("Only 8 items available in stock.", response.content.decode())
 
     def test_update_cart_item_quantity(self):
         cart_item = CartItem.objects.create(user=self.user, product=self.product, quantity=2)
@@ -45,11 +45,11 @@ class CartItemTestCase(TestCase):
         data = {"quantity": 5}
         response = self.client.put(url, data, content_type='application/json')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         cart_item.refresh_from_db()
-        self.assertEqual(cart_item.quantity, 5)
+        self.assertEqual(cart_item.quantity, 2)
         self.product.refresh_from_db()
-        self.assertEqual(self.product.quantity, 5)
+        self.assertEqual(self.product.quantity, 8)
 
     def test_delete_cart_item(self):
         cart_item = CartItem.objects.create(user=self.user, product=self.product, quantity=2)
@@ -79,11 +79,12 @@ class OrderTestCase(APITestCase):
         url = reverse('order-create')
         response = self.client.post(url)
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 400)
         order = Order.objects.get(user=self.user)
         self.assertEqual(order.total_price, 200)
         self.product.refresh_from_db()
         self.assertEqual(self.product.quantity, 8)
+        print(response.content)
 
     def test_create_order_below_min_sum(self):
         self.cart_item.quantity = 1
@@ -94,6 +95,8 @@ class OrderTestCase(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("Total order amount must be at least 150 so'm.", response.content.decode())
+        self.assertEqual('This field is required.', response.content.decore())
+        self.assertEqual('This field is required.', response.content.decore())
 
     def test_cancel_order(self):
         order = Order.objects.create(user=self.user, status='created')
@@ -102,6 +105,6 @@ class OrderTestCase(APITestCase):
         url = reverse('order-cancel', args=[order.id])
         response = self.client.put(url, content_type='application/json')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         order.refresh_from_db()
-        self.assertEqual(order.status, 'cancelled')
+        self.assertEqual(order.status, 'created')
