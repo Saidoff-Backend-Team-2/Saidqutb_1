@@ -41,3 +41,11 @@ def get_main_menu(lang):
     my_orders = KeyboardButton(text="📦 My Orders")
     main_menu.add(web_app, settings, contact_us, my_orders)
     return main_menu
+
+
+def get_confirm_button(lang):
+    confirm_btn = ReplyKeyboardMarkup(resize_keyboard=True)
+    confirm = KeyboardButton(text="Buyurtma berish")
+    cancel_btn = KeyboardButton(text="Cancel")
+    confirm_btn.add(confirm, cancel_btn)
+    return confirm_btn

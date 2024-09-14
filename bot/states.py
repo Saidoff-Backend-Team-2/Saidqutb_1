@@ -7,7 +7,9 @@ class LegalRegisterState:
     EMPLOYEE_COUNT = "employee_count"
     DURATION_DAYS = "duration_days"
     WORKING_DAYS = "working_days"
+    PASSWORD = "password_legal"
 
 class IndividualRegisterState:
     NAME = "name"
     CONTACT = "contact"
+    PASSWORD = "password_individual"

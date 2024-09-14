@@ -9,9 +9,10 @@ default_languages = {
     "ru": {
         "welcome_message": "Здравствуйте, добро пожаловать в наш бот",
         'choose_language': "Выберите один из языков ниже",
-        'physical': "физическое лицо",
+        'individual': "частное лицо",
         'legal': "юридическое лицо",
-        'registration': ''
+        'registration': 'Регистрация',
+
     }
 
 }
@@ -39,3 +40,7 @@ introduction_template = (
 
     """
 )
+
+def calculate_total_water(week_days, employee_count, durations_days):
+    available_days = int(durations_days) // int(week_days) + int(durations_days) % int(week_days)
+    return available_days * int(employee_count) * 2
