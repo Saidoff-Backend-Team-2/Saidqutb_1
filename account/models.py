@@ -1,5 +1,4 @@
 from enum import unique
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -14,7 +13,7 @@ class User(AbstractUser):
         INDIVIDUAL = 'individual', _('INDIVIDUAL')
 
     full_name = models.CharField(_('full name'), max_length=255)
-    email = models.EmailField(_('email'))
+    email = models.EmailField(_('email'), unique=True)
     username = models.CharField(_('username'), max_length=255, unique=True)
     phone_number = PhoneNumberField(_('phone_number'), unique=True)
     password = models.CharField(_('password'), max_length=255)
@@ -24,8 +23,6 @@ class User(AbstractUser):
         choices=UserType.choices,
         default=UserType.INDIVIDUAL
     )
-    telegram_id = models.CharField(_('telegram id'), max_length=255, unique=True, blank=True, null=True)
-    telegram_username = models.CharField(_('telegram username'), max_length=255, unique=True, blank=True, null=True)
     company_name = models.CharField(_('company name'), max_length=255, null=True, blank=True)
 
     def clean(self):
@@ -49,14 +46,7 @@ class User(AbstractUser):
 
 
 class TelegramUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='telegram_user')
+    user = models.OneToOneField(User,null=True, blank=True, on_delete=models.CASCADE, related_name='telegram_user')
     telegram_id = models.CharField(_('telegram_id'), max_length=255, unique=True)
     telegram_user = models.CharField(_('telegram username'), max_length=255, blank=True, null=True)
-
-
-
-
-
-
-
 

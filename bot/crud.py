@@ -34,7 +34,7 @@ def create_user(user_data, user_type):
             TelegramUser.objects.create(
                 user=new_user,
                 telegram_id=user_data['telegram_id'],
-                telegram_username=user_data['username'],
+                username=user_data['username'],
             )
 
             new_user.user_type = user_type
