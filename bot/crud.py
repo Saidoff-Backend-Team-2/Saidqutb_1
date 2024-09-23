@@ -12,6 +12,9 @@ def create_user(user_data, user_type):
         if TelegramUser.objects.filter(telegram_id=user_data['telegram_id']).exists():
             raise Exception('TelegramUser with this ID already exists')
 
+        if User.objects.filter(phone_number=user_data['phone_number']).exists():
+            raise Exception('User with this phone number already exists')
+
         if user_type == User.UserType.INDIVIDUAL:
             new_user, created = User.objects.get_or_create(
                 username=user_data['username'],

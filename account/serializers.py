@@ -53,7 +53,7 @@ class UserLoginResponseSerializer(serializers.Serializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['full_name', 'email', 'username', 'phone_number', 'telegram_id', 'telegram_username', 'company_name']
+        fields = ['full_name', 'email', 'username', 'phone_number','company_name']
         extra_kwargs = {
             'email': {'required': False},
             'username': {'required': False},

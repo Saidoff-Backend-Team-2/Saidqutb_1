@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
-
 import telebot
+import phonenumbers
+from phonenumbers.phonenumberutil import NumberParseException
 from telebot.types import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from bot.keyboards import get_languages, user_types, get_registration, get_contact, get_main_menu, get_confirm_button
 from bot.utils import default_languages, introduction_template, calculate_total_water
@@ -15,6 +16,13 @@ bot = telebot.TeleBot(token=BOT_TOKEN)
 user_languages = {}
 
 all_languages = ['uz', 'ru']
+
+def is_valid_phone_number(phone_number, region='UZ'):
+    try:
+        parsed_number = phonenumbers.parse(phone_number, region)
+        return phonenumbers.is_valid_number(parsed_number)
+    except NumberParseException:
+        return False
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -82,16 +90,24 @@ def individual_name(message):
 
 
 
-@bot.message_handler(content_types=["contact"], func=lambda message: bot.get_state(message.from_user.id) == IndividualRegisterState.CONTACT)
+@bot.message_handler(content_types=["contact", 'text'], func=lambda message: bot.get_state(message.from_user.id) == IndividualRegisterState.CONTACT)
 def individual_contact(message):
     lang = user_languages[message.from_user.id]
 
-    with bot.retrieve_data(user_id=message.chat.id) as data:
-        data['phone_number'] = message.contact.phone_number
+    if message.content_type == 'contact':
+        phone_number = message.contact.phone_number
+    else:
+        phone_number = message.text
 
-    bot.set_state(user_id=message.from_user.id, state=IndividualRegisterState.PASSWORD)
-    bot.add_data(user_id=message.chat.id, **data)
-    bot.send_message(chat_id=message.chat.id, text="Akkountingiz uchun parol kiriting")
+    if is_valid_phone_number(phone_number):
+        with bot.retrieve_data(user_id=message.chat.id) as data:
+            data['phone_number'] = phone_number
+        bot.set_state(user_id=message.from_user.id, state=IndividualRegisterState.PASSWORD)
+        bot.send_message(chat_id=message.chat.id, text="Akkountingiz uchun parol kiriting")
+    else:
+        bot.send_message(chat_id=message.chat.id, text="Noto'g'ri raqam. Iltimos raqamni to'g'ri kiriting")
+        bot.set_state(user_id=message.chat.id, state=IndividualRegisterState.CONTACT)
+        bot.send_message(chat_id=message.chat.id, text="Raqamni qayta kiriting", reply_markup=get_contact(lang))
 
 
 @bot.message_handler(func = lambda message: bot.get_state(message.from_user.id) == IndividualRegisterState.PASSWORD)
@@ -130,14 +146,27 @@ def legal_employee_name(message):
     bot.send_message(chat_id=message.chat.id, text="Kontaktingizni kiriting", reply_markup=get_contact(lang))
 
 
-@bot.message_handler(content_types=["contact"], func=lambda message: bot.get_state(message.from_user.id) == LegalRegisterState.COMPANY_CONTACT)
+@bot.message_handler(content_types=["contact", "text"], func=lambda message: bot.get_state(message.from_user.id) == LegalRegisterState.COMPANY_CONTACT)
 def legal_company_contact(message):
     lang = user_languages[message.from_user.id]
-    with bot.retrieve_data(user_id=message.chat.id) as data:
-        data['phone_number'] = message.contact.phone_number
 
-    bot.set_state(user_id=message.chat.id, state=LegalRegisterState.EMPLOYEE_COUNT)
-    bot.send_message(chat_id=message.chat.id, text="Xodimlar sonini kiriting")
+    if message.content_type == 'contact':
+        phone_number = message.contact.phone_number
+        bot.send_message(chat_id=message.chat.id, text=f"Контакт получен: {phone_number}")
+    else:
+        phone_number = message.text
+        bot.send_message(chat_id=message.chat.id, text=f"Введенный номер: {phone_number}")
+
+    if is_valid_phone_number(phone_number):
+        bot.send_message(chat_id=message.chat.id, text=f"Номер прошел проверку: {phone_number}")
+        with bot.retrieve_data(user_id=message.chat.id) as data:
+            data['phone_number'] = phone_number
+
+        bot.set_state(user_id=message.from_user.id, state=LegalRegisterState.EMPLOYEE_COUNT)
+        bot.send_message(chat_id=message.chat.id, text="Xodimlar sonini kiriting")
+    else:
+        bot.send_message(chat_id=message.chat.id, text="Noto'g'ri raqam. Iltimos, raqamni to'g'ri kiriting.")
+        bot.send_message(chat_id=message.chat.id, text="Kontaktni yuboring yoki raqamni qayta kiriting", reply_markup=get_contact(lang))
 
 
 @bot.message_handler(func=lambda message: bot.get_state(message.from_user.id) == LegalRegisterState.EMPLOYEE_COUNT)

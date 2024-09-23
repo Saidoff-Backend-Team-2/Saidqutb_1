@@ -1,6 +1,11 @@
+from gc import get_objects
+
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .models import CartItem, Order, OrderMinSum
 from .serializers import CartItemSerializer, OrderSerializer
 from rest_framework import generics, status
@@ -98,12 +103,10 @@ class OrderCreateView(generics.CreateAPIView):
         order.save()
 
 
-class OrderCancelView(generics.UpdateAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+class OrderCancelView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def perform_update(self, serializer):
+    def post(self, request, *args, **kwargs):
         order = self.get_object()
         if order.status != 'cancelled':
             order.status = 'cancelled'
@@ -111,4 +114,8 @@ class OrderCancelView(generics.UpdateAPIView):
             return Response({"status": "cancelled"}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Order is already cancelled."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_object(self):
+        order_id = self.kwargs('pk')
+        return get_object_or_404(Order, pk=order_id)
 
